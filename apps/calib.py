@@ -51,6 +51,8 @@ def suppress_stdout():
 with suppress_stdout():
     import pyart
 
+import sys
+sys.path.append("C:/Projects/Radar Research Project/bugtracker")
 import bugtracker
 
 
@@ -67,7 +69,6 @@ def plot_calib_graph(args, metadata, radial_plotter, plot_type, angle, data):
 
 
 def plot_calib_iris(args, config):
-
     iris_collection = bugtracker.io.iris.IrisCollection(args.station)
     if len(iris_collection.sets) == 0:
         raise ValueError("Invalid length")
@@ -131,7 +132,7 @@ def plot_calib_nexrad(args, config):
     nc_file = bugtracker.core.cache.calib_filepath(metadata, grid_info)
 
     plot_dir = config['plot_dir']
-    plot_subdir = os.path.join(plot_dir, "calib_plots")
+    plot_subdir = os.path.join(plot_dir, "calib_plots")  
 
     if not os.path.isdir(plot_dir):
         os.mkdir(plot_dir)
@@ -349,7 +350,6 @@ def main():
 
     cache_manager.make_folders()
     config = bugtracker.config.load("./bugtracker.json")
-
 
     if args.plot:
         plot_calib_graphs(args, config)

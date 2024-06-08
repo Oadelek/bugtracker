@@ -68,10 +68,9 @@ def get_closest_set(args, config):
     Returns an IrisSet object that we wish to analyze, which
     is closest to the specified datetime.
     """
-
     station_code = args.station.lower()
 
-    iris_coll = bugtracker.io.iris.IrisCollection(args.station)
+    iris_coll = bugtracker.io.iris.IrisCollection(station_code)
     iris_coll.check_sets()
 
     pattern = "%Y%m%d%H%M"

@@ -38,12 +38,12 @@ class BaseOutput(abc.ABC):
         using the dset file handle.
         """
 
-        dset.latitude = self.metadata.lat
-        dset.longitude = self.metadata.lon
-        dset.radar_id = self.metadata.radar_id
-        dset.datetime = self.metadata.scan_dt.strftime("%Y%m%d%H%M")
-        dset.name = self.metadata.name
-        dset.filetype = self.radar_filetype
+        dset.setncattr('latitude', self.metadata.lat)
+        dset.setncattr('longitude', self.metadata.lon)
+        dset.setncattr('radar_id', self.metadata.radar_id)
+        dset.setncattr('datetime', self.metadata.scan_dt.strftime("%Y%m%d%H%M"))
+        dset.setncattr('name', self.metadata.name)
+        dset.setncattr('filetype', self.radar_filetype)
 
 
     def write(self, filename):

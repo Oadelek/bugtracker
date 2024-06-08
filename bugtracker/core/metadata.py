@@ -83,9 +83,14 @@ def from_iris_set(iris_set):
     if abs_lon > 360.0:
         raise ValueError(f"Invalid longitude: {longitude}")
 
+    # Access the instrument name from metadata
+    instrument_name = iris_convol.metadata['instrument_name']
 
-    #TODO: Include check for bytes type first
-    radar_name = iris_convol.metadata['instrument_name'].decode()
+    # Check if the instrument name is in bytes before decoding
+    if isinstance(instrument_name, bytes):
+        radar_name = instrument_name.decode()
+    else:
+        radar_name = instrument_name  # Assume it is already a string
 
     iris_metadata = Metadata(radar_id, scan_dt, latitude, longitude, radar_name)
     return iris_metadata

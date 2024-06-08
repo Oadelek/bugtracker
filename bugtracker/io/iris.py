@@ -103,7 +103,6 @@ def round_angle(angle):
 
 
 def iris_grid():
-
     gates = 256 * 2
     azims = 720
     gate_step = 500.0
@@ -121,7 +120,6 @@ class IrisFile:
 
         # This section may need to be adapted, if more patterns emerge.
         # Currently, there are two recognized filename formats for IRIS
-
         if '~~' in path:
             self.set_file_tilde(path)
         elif ':' in path:
@@ -136,7 +134,6 @@ class IrisFile:
         split_base = basename.split('~~')
 
         if len(split_base) != 2:
-            print(split_base)
             raise SyntaxError(f"Invalid filename {basename}")
 
         datestamp = split_base[0]
@@ -148,19 +145,19 @@ class IrisFile:
 
 
     def set_file_colon(self, path):
-
         basename = os.path.basename(path)
-        split_base = basename.split(":")
+        split_base = basename.split("_")
+        if len(split_base) < 5:
+            raise ValueError(f"Invalid filename {basename}")
 
-        if len(split_base) != 2:
-            print(split_base)
-            raise SyntaxError(f"Invalid filename {basename}")
-
-        datestamp = split_base[1]
-        pattern = "%Y%m%d%H%M%S"
+        datestamp = split_base[0]
+        pattern = "%Y%m%d%H%M"
         self.datetime = datetime.datetime.strptime(datestamp, pattern)
 
-        self.type = split_base[0]
+        if split_base[1] == "CONVOL" or split_base[1] == "DOPVOL2":
+            self.type = split_base[1]
+        else:
+            self.type = "_".join(split_base[1:3])
 
 
     def __str__(self):
@@ -297,21 +294,20 @@ class IrisCollection:
         self.files.sort(key = lambda x: (x.datetime, x.type))
 
 
-    def _reset(self, start, stop):
+    def _reset(self, start, end):
         """
         The 'reset' function is called due to the YYYY/mm/dd folder structure.
         """
 
         # including all files
-        file_list = bugtracker.core.utils.get_input_files(self.config, "iris", self.radar_id, start, stop)
-
+        file_list = bugtracker.core.utils.get_input_files(self.config, "iris", self.radar_id, start, end)
         self.files = []
 
         for file in file_list:
             try:
                 self.files.append(IrisFile(file))
             except (ValueError, SyntaxError):
-                print(f"Invalid file, skipping: {file}")
+                print(f"Invalid file: {file}")
 
         self._sort()
 
@@ -370,7 +366,7 @@ class IrisCollection:
                 min_diff = total_seconds
                 min_idx = x
 
-        print("Min diff in seconds:", min_diff)
+        print("Minimum diff in seconds:", min_diff)
 
         max_threshold = 60 * 30
 
@@ -476,7 +472,7 @@ class IrisData(ScanData):
             convol_levels.append(convol_array)
 
         if len(convol_levels) != self.convol_scans:
-            raise ValueError("Convol scans:", len(convol_scans))
+            raise ValueError("Convol scans:", len(self.convol_scans))
 
         for z in range(0, self.convol_scans):
             for x in range(0, self.grid_info.azims):

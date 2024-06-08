@@ -79,7 +79,6 @@ def get_input_files(config, radar_type, radar_id, start, stop):
     """
 
     radar_type = radar_type.strip().lower()
-
     input_folders = get_input_folders(config, radar_type, radar_id, start, stop)
 
     all_files = []
@@ -182,7 +181,6 @@ def latlon(grid_info, metadata):
 
 
 def iris_scan_stats(radar_file, label):
-
     print("*******************************************")
 
     if radar_file is None or not os.path.isfile(radar_file):

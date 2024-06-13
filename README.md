@@ -18,7 +18,7 @@ We provide support for the following Radar filetypes:
 1. Clone the repository to a local folder
 
 ```sh
-git clone https://github.com/mcgillradar/bugtracker.git
+git clone https://github.com/Oadelek/bugtracker.git
 ```
 
 2. Install [miniconda3](https://docs.conda.io/en/latest/miniconda.html)

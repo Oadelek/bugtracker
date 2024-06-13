@@ -220,7 +220,6 @@ def plot_calib_graphs(args, config):
 
   
 def run_iris_calib(args, config):
-
     time_start = datetime.datetime.strptime(args.timestamp, "%Y%m%d%H%M")
     data_mins = args.data_hours * 60
 
@@ -237,7 +236,7 @@ def run_iris_calib(args, config):
 
 
     print("Time start:", time_start.strftime("%Y%m%d%H%M"))
-    print("Data mins:", data_mins)
+    print("Data mins:", data_mins)  
 
     # Let's get a list of 
     iris_dir = os.path.join(config['input_dirs']['iris'], args.station)

@@ -141,16 +141,14 @@ class IrisOutput(BaseOutput):
     """
 
     def __init__(self, metadata, grid_info):
-
         super().__init__(metadata, grid_info, "iris")
-
         self.velocity = None
         self.spectrum_width = None
         self.total_power = None
+        self.precip_filter = None  # New attribute to store precipitation filter
 
 
-    def populate(self, iris_data):
-
+    def populate(self, iris_data, precip_filter, precip_angles):
         self.dbz_filtered = iris_data.dbz_filtered
         self.dbz_unfiltered = iris_data.dbz_unfiltered
         self.joint_product = iris_data.joint_product
@@ -160,10 +158,10 @@ class IrisOutput(BaseOutput):
         self.velocity = iris_data.velocity
         self.spectrum_width = iris_data.spectrum_width
         self.total_power = iris_data.total_power
-
+        self.precip_filter = precip_filter.filter_3d  # Assign precipitation filter data
+        self.precip_angles = precip_angles
 
     def validate(self):
-
         super().validate()
 
         # check dimensions also
@@ -176,6 +174,13 @@ class IrisOutput(BaseOutput):
 
         if velocity_shape != power_shape:
             raise ValueError(f"Incompatible shapes {velocity_shape} != {spectrum_shape}")
+        
+        # Check precipitation filter dimensions
+        if self.precip_filter is not None:
+            precip_filter_shape = self.precip_filter.shape
+            expected_shape = (len(self.precip_angles), self.grid_info.azims, self.grid_info.gates)
+            if precip_filter_shape != expected_shape:
+                raise ValueError(f"Incompatible precipitation filter shape: {precip_filter_shape} != {expected_shape}")
 
 
     def write(self, filename):
@@ -209,6 +214,16 @@ class IrisOutput(BaseOutput):
         nc_power[:,:,:] = self.total_power[:,:,:]
         nc_velocity[:,:,:] = self.velocity[:,:,:]
         nc_spectrum[:,:,:] = self.spectrum_width[:,:,:]
+
+
+        # Write precipitation filter data
+        if self.precip_filter is not None:
+            precip_filter_shape = self.precip_filter.shape
+            num_convol_elevs, num_azims, num_gates = precip_filter_shape
+            if 'convol_elevs' not in dset.dimensions:
+                dset.createDimension("convol_elevs", num_convol_elevs)
+            nc_precip_filter = dset.createVariable("precip_filter", np.int8, ('convol_elevs', 'azims', 'gates'))
+            nc_precip_filter[:, :, :] = self.precip_filter.astype(np.int8)
 
         dset.close()
 

@@ -74,7 +74,7 @@ class Processor(abc.ABC):
         """
 
         polar_dims = (self.grid_info.azims, self.grid_info.gates)
-
+ 
         if self.lats.shape != polar_dims:
             raise ValueError(f"Lat grid invalid dims: {self.lats.shape}")
         
@@ -318,7 +318,7 @@ class IrisProcessor(Processor):
         self.set_joint_product(iris_data)
 
         iris_output = bugtracker.io.models.IrisOutput(self.metadata, self.grid_info)
-        iris_output.populate(iris_data)
+        iris_output.populate(iris_data, convol_precip, self.convol_angles)  # Pass precipitation filter data
         iris_output.validate()
         iris_output.write(nc_filename)
 

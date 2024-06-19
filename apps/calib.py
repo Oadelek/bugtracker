@@ -28,6 +28,7 @@ On this grid, we need to have:
 *) Clutter mask
 """
 
+# Save this as calib.py
 import os
 import sys
 import math
@@ -51,11 +52,8 @@ def suppress_stdout():
 with suppress_stdout():
     import pyart
 
-import sys
 sys.path.append("C:/Projects/Radar Research Project/bugtracker")
 import bugtracker
-
-
 
 def plot_calib_graph(args, metadata, radial_plotter, plot_type, angle, data):
     time_start = datetime.datetime.strptime(args.timestamp, "%Y%m%d%H%M")
@@ -326,19 +324,19 @@ def run_odim_calib(args, config):
     calib_controller.save_masks()
 
 
-def main():
+def run_calibration(timestamp, dtype, station, data_hours=6, debug=False, clear=False, plot=False):
+    class Args:
+        def __init__(self, timestamp, dtype, station, data_hours, debug, clear, plot):
+            self.timestamp = timestamp
+            self.dtype = dtype
+            self.station = station
+            self.data_hours = data_hours
+            self.debug = debug
+            self.clear = clear
+            self.plot = plot
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("timestamp", help="Data timestamp YYYYmmddHHMM")
-    parser.add_argument("dtype", help="Data type (either iris, nexrad, or odim)")
-    parser.add_argument("station", help="Station code")
-    parser.add_argument("-dt", "--data_hours", type=int, default=6)
-    parser.add_argument('-d', '--debug', action='store_true', help="Debug plotting")
-    parser.add_argument('-c', '--clear', action='store_true', help="Clear cache")
-    parser.add_argument('-p', '--plot', action='store_true', help="Plot diagnostic graphs")
-    # Reset
-
-    args = parser.parse_args()
+    args = Args(timestamp, dtype, station, data_hours, debug, clear, plot)
+    
     dtype = args.dtype.lower()
 
     cache_manager = bugtracker.core.cache.CacheManager()
@@ -363,5 +361,23 @@ def main():
             raise ValueError(f"Invalid dtype {dtype}")
 
 
-if __name__ == "__main__":
-    main()
+# Adding the main function to handle command-line execution
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("timestamp", help="Data timestamp YYYYmmddHHMM")
+    parser.add_argument("dtype", help="Data type (either iris, nexrad, or odim)")
+    parser.add_argument("station", help="Station code")
+    parser.add_argument("-dt", "--data_hours", type=int, default=6)
+    parser.add_argument('-d', '--debug', action='store_true', help="Debug plotting")
+    parser.add_argument('-c', '--clear', action='store_true', help="Clear cache")
+    parser.add_argument('-p', '--plot', action='store_true', help="Plot diagnostic graphs")
+    
+    args = parser.parse_args()
+    run_calibration(args.timestamp, args.dtype, args.station, args.data_hours, args.debug, args.clear, args.plot)
+
+
+if not hasattr(sys, 'argv') or sys.argv[0] != __file__:
+  # Script is sourced or imported (including by reticulate)
+  print("Running within reticulate or sourced")
+else:
+  main()

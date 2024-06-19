@@ -74,7 +74,7 @@ def get_closest_set(args, config):
     iris_coll.check_sets()
 
     pattern = "%Y%m%d%H%M"
-    search_datetime = datetime.datetime.strptime(args.start, pattern)
+    search_datetime = datetime.datetime.strptime(args.timestamp, pattern)
     closest_set = iris_coll.closest_set(search_datetime)
 
     if closest_set is None:
@@ -86,7 +86,6 @@ def get_closest_set(args, config):
 
 
 def iris_tracker(args, config):
-
     iris_set_list = []
 
     # If time is 0, that means get only the closest
@@ -94,7 +93,7 @@ def iris_tracker(args, config):
         closest_set = get_closest_set(args, config)
         iris_set_list.append(closest_set)
     else:
-        time_start = datetime.datetime.strptime(args.start, "%Y%m%d%H%M")
+        time_start = datetime.datetime.strptime(args.timestamp, "%Y%m%d%H%M")
         data_mins = args.data_hours * 60
         iris_collection = bugtracker.io.iris.IrisCollection(args.station)
         iris_set_list = iris_collection.time_range(time_start, data_mins)
@@ -110,12 +109,11 @@ def iris_tracker(args, config):
 
 
 def nexrad_tracker(args, config):
-
     date_format = "%Y%m%d%H%M"
 
     # Filtering input arguments
     station_id = args.station.strip().lower()
-    start_time = datetime.datetime.strptime(args.start, date_format)
+    start_time = datetime.datetime.strptime(args.timestamp, date_format)
     end_time = start_time + datetime.timedelta(hours=args.data_hours)
 
     # Initializing manager class
@@ -140,12 +138,11 @@ def nexrad_tracker(args, config):
 
 
 def odim_tracker(args, config):
-
     date_format = "%Y%m%d%H%M"
 
     # Filtering input arguments
     station_id = args.station.strip().lower()
-    start_time = datetime.datetime.strptime(args.start, date_format)
+    start_time = datetime.datetime.strptime(args.timestamp, date_format)
     end_time = start_time + datetime.timedelta(hours=args.data_hours)
 
     # Initializing manager class
@@ -169,24 +166,18 @@ def odim_tracker(args, config):
     processor.process_files(odim_files)
 
 
-def main():
+def run_tracker(timestamp, dtype, station, data_hours=0, range = 100,debug=False):
+    class Args:
+        def __init__(self, timestamp, dtype, station, data_hours, range, debug):
+            self.timestamp = timestamp
+            self.dtype = dtype
+            self.station = station
+            self.data_hours = data_hours
+            self.range = range
+            self.debug = debug
 
-    t0 = time.time()
-
+    args = Args(timestamp, dtype, station, data_hours, range, debug)
     config = bugtracker.config.load("./bugtracker.json")
-
-    # First step "minimal", create a batch from command-line inputs
-    parser = argparse.ArgumentParser()
-    parser.add_argument("start", help="Data timestamp YYYYmmddHHMM")
-    parser.add_argument("dtype", help="Data type (either iris, nexrad, or odim)")
-    parser.add_argument("station", help="3 letter station code")
-    parser.add_argument("-dt", "--data_hours", type=int, default=0)
-    parser.add_argument("-r", "--range", default=100, type=int, help="Maximum range (km)")
-    parser.add_argument('-d', '--debug', action='store_true', help="Debug plotting")
-
-    args = parser.parse_args()
-    check_args(args)
-
     dtype = args.dtype.lower()
 
     if dtype == 'iris':
@@ -200,5 +191,22 @@ def main():
         raise ValueError(f"Invalid dtype {dtype}")
 
 
-if __name__ == "__main__":
-    main()
+# Adding the main function to handle command-line execution
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("timestamp", help="Data timestamp YYYYmmddHHMM")
+    parser.add_argument("dtype", help="Data type (either iris, nexrad, or odim)")
+    parser.add_argument("station", help="3 letter station code")
+    parser.add_argument("-dt", "--data_hours", type=int, default=0)
+    parser.add_argument("-r", "--range", default=100, type=int, help="Maximum range (km)")
+    parser.add_argument('-d', '--debug', action='store_true', help="Debug plotting")
+    
+    args = parser.parse_args()
+    run_tracker(args.timestamp, args.dtype, args.station, args.data_hours, args.range, args.debug)
+
+
+if not hasattr(sys, 'argv') or sys.argv[0] != __file__:
+  # Script is sourced or imported (including by reticulate)
+  print("Running within reticulate or sourced")
+else:
+  main()

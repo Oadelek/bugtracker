@@ -93,7 +93,6 @@ dependencies:
   - pip:
     - atomicwrites
     - attrs
-    - bugtracker
     - colorama
     - importlib-metadata
     - more-itertools
